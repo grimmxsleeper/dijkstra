@@ -4,6 +4,7 @@
 #include "dijkstra.h"
 #include "board.h"
 #include "func.h"
+#include "bitboards.h"
 
 /**
  * For now, this will start from the standard board setup
@@ -35,13 +36,30 @@ void setup_board(struct board *board, GList *moves) {
         printf("invalid move: %s\n", move);
         return;
       }
-      for(ix = 0; ix < PIECE_TYPES; ix++) {
+      piece_loop(ix) {
         if(board->bitboards[ix] & src) {
+          if(ix == NONE) {
+            printf("invalid move: %s\n", move);
+            return;
+          }
+          // remove dst piece if captured
+          piece_loop(jx) {
+            if(board->bitboards[jx] & dst) {
+              pretty_string(jx);
+              new_bitboard = (board->bitboards[jx] ^ dst);
+              update_bitboard(jx, board, new_bitboard);
+              break;
+            }
+          }
+
+          // always move piece from dst to src
           new_bitboard = (board->bitboards[ix] ^ src) | dst;
           update_bitboard(ix, board, new_bitboard);
-          // also update the NONE board
-          new_bitboard = (board->bitboards[NONE] ^ dst) | src;
+
+          // always add NONE to src of move
+          new_bitboard = (board->bitboards[NONE]) | src;
           update_bitboard(NONE, board, new_bitboard);
+          break;
         }
       }
     }
@@ -53,11 +71,11 @@ void print_board(struct board *board) {
     int ix, jx;
     printf("  |  a |  b |  c |  d |  e |  f |  g |  h\n");
     printf("-----------------------------------------");
-    for(ix = BOARDSIZE - 1; ix >= 0; ix--) {
+    board_loop(ix){
       if((ix + 1) % 8 == 0) {
         printf("\n%d | ", (ix + 1) / 8);
       }
-      for(jx = 0; jx < PIECE_TYPES; jx++) {
+      piece_loop(jx) {
         if(has_piece_at(board->bitboards[jx], ix)) {
           printf("%s | ", pretty_string(jx));
           break;
@@ -74,12 +92,12 @@ void print_single_bitboard(u64 bitboard) {
   int ix, jx, found;
   printf("  |  a |  b |  c |  d |  e |  f |  g |  h\n");
   printf("-----------------------------------------");
-  for(ix = BOARDSIZE - 1; ix >= 0; ix--) {
+  board_loop(ix) {
     found = 0;
     if((ix + 1) % 8 == 0) {
       printf("\n%d | ", (ix + 1) / 8);
     }
-    for(jx = 0; jx < PIECE_TYPES; jx++) {
+    piece_loop(jx) {
       if(has_piece_at(bitboard, ix)) {
         printf("%s | ", pretty_string(jx));
         found = 1;

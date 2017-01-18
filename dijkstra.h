@@ -9,23 +9,9 @@ typedef unsigned long long u64;
 #define BAD_CMD_STR "Unknown Command, ignoring...\n"
 
 #define BOARDSIZE 64
+#define BOARDLEN 8
 #define PIECE_TYPES 13
-
-#define START_BP 0x00FF000000000000
-#define START_BN 0x4200000000000000
-#define START_BB 0x2400000000000000
-#define START_BR 0x8100000000000000
-#define START_BQ 0x1000000000000000
-#define START_BK 0x0800000000000000
-
-#define START_WP 0x000000000000FF00
-#define START_WN 0x0000000000000042
-#define START_WB 0x0000000000000024
-#define START_WR 0x0000000000000081
-#define START_WQ 0x0000000000000010
-#define START_WK 0x0000000000000008
-
-#define START_NONE 0x0000FFFFFFFF0000
+#define NUM_DIAG 2 * BOARDLEN - 1
 
 enum colors {
   WHITE = 0,
@@ -57,6 +43,12 @@ struct board {
 
 #define streq(a,b) (strcmp(a,b) == 0)
 #define pretty_string(idx) (piece_strings[idx])
+#define print_pretty_string(idx) (printf("%s", pretty_string(idx)))
+#define print_pretty_string_newline(idx) (printf("%s\n", pretty_string(idx)))
+#define piece_loop(ix) for(int ix = 0; ix < PIECE_TYPES; ix++)
+#define board_loop(ix) for(ix = BOARDSIZE - 1; ix >= 0; ix--)
+#define boardlen_loop(ix) for(int ix = 0; ix < BOARDLEN; ix++)
+#define diag_num_loop(ix) for(int ix = 0; ix < NUM_DIAG; ix++)
 
 typedef enum { false, true } bool;
 
