@@ -50,22 +50,14 @@ enum piece {
 
 extern const char *piece_strings[PIECE_TYPES];
 
-struct bitboards {
-  u64 none;
-  u64 pawns[2];
-  u64 knights[2];
-  u64 bishops[2];
-  u64 rooks[2];
-  u64 queens[2];
-  u64 kings[2];
-};
-
 struct board {
-  struct bitboards bb;
+  u64 bitboards[PIECE_TYPES];
   enum colors color;
 };
 
 #define streq(a,b) (strcmp(a,b) == 0)
 #define pretty_string(idx) (piece_strings[idx])
+
+typedef enum { false, true } bool;
 
 #endif

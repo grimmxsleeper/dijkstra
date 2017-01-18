@@ -1,7 +1,9 @@
 #include <glib.h>
 #include <stdio.h>
+#include <string.h>
 #include "dijkstra.h"
 #include "board.h"
+#include "func.h"
 
 /**
  * For now, this will start from the standard board setup
@@ -9,19 +11,46 @@
  * TODO: Add FEN param
  */
 void setup_board(struct board *board, GList *moves) {
+  if(moves) {
+    if(!streq(moves->data, "moves")) {
+      printf(BAD_CMD_STR);
+      return;
+    }
+  }
   init_board(board);
-  // make moves
+  if(moves) {
+    GList *list;
+    char *move;
+    int ix;
+    u64 src, dst, new_bitboard;
+    for (list = moves->next; list != NULL; list = list->next){
+      move = list->data;
+      if(strlen(move) != 4) {
+        printf(BAD_CMD_STR);
+        return;
+      }
+      src = coord_to_u64(move[0], move[1]);
+      dst = coord_to_u64(move[2], move[3]);
+      if(!src || !dst) {
+        printf("invalid move: %s\n", move);
+        return;
+      }
+      for(ix = 0; ix < PIECE_TYPES; ix++) {
+        if(board->bitboards[ix] & src) {
+          new_bitboard = (board->bitboards[ix] ^ src) | dst;
+          update_bitboard(ix, board, new_bitboard);
+          // also update the NONE board
+          new_bitboard = (board->bitboards[NONE] ^ dst) | src;
+          update_bitboard(NONE, board, new_bitboard);
+        }
+      }
+    }
+  }
 }
 
 void print_board(struct board *board) {
   if(board) {
     int ix, jx;
-    u64 bitboards[PIECE_TYPES];
-    get_bitboards(board, bitboards);
-    for(jx = 0; jx < PIECE_TYPES; jx++) {
-      printf("%s\n", pretty_string(jx));
-      print_single_bitboard(bitboards[jx]);
-    }
     printf("  |  a |  b |  c |  d |  e |  f |  g |  h\n");
     printf("-----------------------------------------");
     for(ix = BOARDSIZE - 1; ix >= 0; ix--) {
@@ -29,14 +58,15 @@ void print_board(struct board *board) {
         printf("\n%d | ", (ix + 1) / 8);
       }
       for(jx = 0; jx < PIECE_TYPES; jx++) {
-        if(has_piece_at(bitboards[jx], ix)) {
+        if(has_piece_at(board->bitboards[jx], ix)) {
           printf("%s | ", pretty_string(jx));
           break;
         }
       }
     }
+    printf("\n");
   } else {
-    printf("board is NULL!");
+    printf("board is NULL!\n");
   }
 }
 
@@ -69,40 +99,28 @@ u64 has_piece_at(u64 bitboard, int pos) {
 
 void init_board(struct board *board) {
   if(board) {
-    board->bb.none = START_NONE;
-    board->bb.pawns[WHITE] = START_WP;
-    board->bb.pawns[BLACK] = START_BP;
-    board->bb.knights[WHITE] = START_WN;
-    board->bb.knights[BLACK] = START_BN;
-    board->bb.bishops[WHITE] = START_WB;
-    board->bb.bishops[BLACK] = START_BB;
-    board->bb.rooks[WHITE] = START_WR;
-    board->bb.rooks[BLACK] = START_BR;
-    board->bb.queens[WHITE] = START_WQ;
-    board->bb.queens[BLACK] = START_BQ;
-    board->bb.kings[WHITE] = START_WK;
-    board->bb.kings[BLACK] = START_BK;
+    board->bitboards[NONE] = START_NONE;
+    board->bitboards[WP] = START_WP;
+    board->bitboards[WN] = START_WN;
+    board->bitboards[WB] = START_WB;
+    board->bitboards[WR] = START_WR;
+    board->bitboards[WQ] = START_WQ;
+    board->bitboards[WK] = START_WK;
+    board->bitboards[BP] = START_BP;
+    board->bitboards[BN] = START_BN;
+    board->bitboards[BB] = START_BB;
+    board->bitboards[BR] = START_BR;
+    board->bitboards[BQ] = START_BQ;
+    board->bitboards[BK] = START_BK;
   } else {
-    printf("board is NULL!");
+    printf("board is NULL!\n");
   }
 }
 
-void get_bitboards(struct board *board, u64 bitboards[PIECE_TYPES]) {
+void update_bitboard(int idx, struct board *board, u64 new_bitboard) {
   if(board) {
-    bitboards[NONE] = board->bb.none;
-    bitboards[WP] = board->bb.pawns[WHITE];
-    bitboards[BP] = board->bb.pawns[BLACK];
-    bitboards[WN] = board->bb.knights[WHITE];
-    bitboards[BN] = board->bb.knights[BLACK];
-    bitboards[WB] = board->bb.bishops[WHITE];
-    bitboards[BB] = board->bb.bishops[BLACK];
-    bitboards[WR] = board->bb.rooks[WHITE];
-    bitboards[BR] = board->bb.rooks[BLACK];
-    bitboards[WQ] = board->bb.queens[WHITE];
-    bitboards[BQ] = board->bb.queens[BLACK];
-    bitboards[WK] = board->bb.kings[WHITE];
-    bitboards[BK] = board->bb.kings[BLACK];
+    board->bitboards[idx] = new_bitboard;
   } else {
-    printf("board is NULL!");
+    printf("board is NULL!\n");
   }
 }
