@@ -69,11 +69,11 @@ void setup_board(struct board *board, GList *moves) {
 void print_board(struct board *board) {
   if(board) {
     int ix, jx;
-    printf("  |  a |  b |  c |  d |  e |  f |  g |  h\n");
-    printf("-----------------------------------------");
+    printf(board_file_row);
     board_loop(ix){
       if((ix + 1) % 8 == 0) {
-        printf("\n%d | ", (ix + 1) / 8);
+        printf(vert_line);
+        printf("  %d | ", (ix + 1) / 8);
       }
       piece_loop(jx) {
         if(has_piece_at(board->bitboards[jx], ix)) {
@@ -82,33 +82,28 @@ void print_board(struct board *board) {
         }
       }
     }
-    printf("\n");
+    printf("%s\n", vert_line);
   } else {
     printf("board is NULL!\n");
   }
 }
 
-void print_single_bitboard(u64 bitboard) {
-  int ix, jx, found;
-  printf("  |  a |  b |  c |  d |  e |  f |  g |  h\n");
-  printf("-----------------------------------------");
+void print_single_bitboard(u64 bitboard, enum piece type) {
+  int ix, found;
+  printf(board_file_row);
   board_loop(ix) {
     found = 0;
     if((ix + 1) % 8 == 0) {
-      printf("\n%d | ", (ix + 1) / 8);
+      printf(vert_line);
+      printf("  %d | ", (ix + 1) / 8);
     }
-    piece_loop(jx) {
-      if(has_piece_at(bitboard, ix)) {
-        printf("%s | ", pretty_string(jx));
-        found = 1;
-        break;
-      }
-    }
-    if(!found) {
-      printf("00 | ");
+    if(has_piece_at(bitboard, ix)) {
+      printf("%s | ", pretty_string(type));
+    } else {
+      printf("   | ");
     }
   }
-  printf("\n");
+  printf("%s\n", vert_line);
 }
 
 u64 has_piece_at(u64 bitboard, int pos) {

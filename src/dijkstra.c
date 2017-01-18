@@ -9,7 +9,7 @@
 #include "masks.h"
 
 const char *piece_strings[PIECE_TYPES] = {
-  "XX", "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ", "BK"
+  "  ", "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ", "BK"
 };
 const u64 ranks[BOARDLEN] = {
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
@@ -74,7 +74,7 @@ int main(void) {
               int ix;
               piece_loop(ix) {
                 printf("%s\n", pretty_string(ix));
-                print_single_bitboard(board->bitboards[ix]);
+                print_single_bitboard(board->bitboards[ix], ix);
               }
             }
           } else if(streq(cmd->data, "print")) {
@@ -93,7 +93,7 @@ int main(void) {
             u64 rank_bb = 0, file_bb = 0, dr_bb = 0, dl_bb = 0;
             test_bb = START_WQ << 8ULL;
             print_pretty_string_newline(WQ);
-            print_single_bitboard(test_bb);
+            print_single_bitboard(test_bb, WQ);
             boardlen_loop(ix) {
               if(ranks[ix] & test_bb) {
                 rank_bb = ranks[ix];
@@ -111,7 +111,8 @@ int main(void) {
               }
             }
             print_single_bitboard(
-              rank_bb | file_bb | dr_bb | dl_bb
+              rank_bb | file_bb | dr_bb | dl_bb,
+              WQ
             );
           } else {
             printf(BAD_CMD_STR);
