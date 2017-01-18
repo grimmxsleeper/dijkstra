@@ -42,11 +42,10 @@ struct board {
 };
 
 #define streq(a,b) (strcmp(a,b) == 0)
-#define pretty_string(idx) (piece_strings[idx])
-#define print_pretty_string(idx) (printf("%s", pretty_string(idx)))
-#define print_pretty_string_newline(idx) (printf("%s\n", pretty_string(idx)))
+#define print_pretty_string(idx) (printf("%s", piece_strings[idx]))
+#define print_pretty_string_newline(idx) (printf("%s\n", piece_strings[idx]))
 #define piece_loop(ix) for(int ix = 0; ix < PIECE_TYPES; ix++)
-#define board_loop(ix) for(ix = BOARDSIZE - 1; ix >= 0; ix--)
+#define board_loop(ix) for(int ix = BOARDSIZE - 1; ix >= 0; ix--)
 #define boardlen_loop(ix) for(int ix = 0; ix < BOARDLEN; ix++)
 #define diag_num_loop(ix) for(int ix = 0; ix < NUM_DIAG; ix++)
 

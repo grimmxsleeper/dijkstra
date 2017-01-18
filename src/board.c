@@ -22,7 +22,6 @@ void setup_board(struct board *board, GList *moves) {
   if(moves) {
     GList *list;
     char *move;
-    int ix;
     u64 src, dst, new_bitboard;
     for (list = moves->next; list != NULL; list = list->next){
       move = list->data;
@@ -45,7 +44,7 @@ void setup_board(struct board *board, GList *moves) {
           // remove dst piece if captured
           piece_loop(jx) {
             if(board->bitboards[jx] & dst) {
-              pretty_string(jx);
+              // WTF? piece_strings[jx];
               new_bitboard = (board->bitboards[jx] ^ dst);
               update_bitboard(jx, board, new_bitboard);
               break;
@@ -68,7 +67,6 @@ void setup_board(struct board *board, GList *moves) {
 
 void print_board(struct board *board) {
   if(board) {
-    int ix, jx;
     printf(board_file_row);
     board_loop(ix){
       if((ix + 1) % 8 == 0) {
@@ -77,7 +75,7 @@ void print_board(struct board *board) {
       }
       piece_loop(jx) {
         if(has_piece_at(board->bitboards[jx], ix)) {
-          printf("%s | ", pretty_string(jx));
+          printf("%s | ", piece_strings[jx]);
           break;
         }
       }
@@ -89,16 +87,14 @@ void print_board(struct board *board) {
 }
 
 void print_single_bitboard(u64 bitboard, enum piece type) {
-  int ix, found;
   printf(board_file_row);
   board_loop(ix) {
-    found = 0;
     if((ix + 1) % 8 == 0) {
       printf(vert_line);
       printf("  %d | ", (ix + 1) / 8);
     }
     if(has_piece_at(bitboard, ix)) {
-      printf("%s | ", pretty_string(type));
+      printf("%s | ", piece_strings[type]);
     } else {
       printf("   | ");
     }

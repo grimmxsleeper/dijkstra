@@ -29,10 +29,9 @@ const u64 diags_l[NUM_DIAG] = {
 int main(void) {
   char line[1024];
   GList *cmd = NULL;
-  GList *g_iter;
   char *token;
   int cmd_len = 0;
-  enum colors color;
+  //enum colors color;
   struct board *board = NULL;
   while(1) {
     // take input and output from uci standard
@@ -71,9 +70,8 @@ int main(void) {
             }
           } else if(streq(cmd->data, "printbb")) {
             if(board) {
-              int ix;
               piece_loop(ix) {
-                printf("%s\n", pretty_string(ix));
+                printf("%s\n", piece_strings[ix]);
                 print_single_bitboard(board->bitboards[ix], ix);
               }
             }
