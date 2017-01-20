@@ -5,6 +5,7 @@
 #include "board.h"
 #include "func.h"
 #include "bitboards.h"
+#include "masks.h"
 
 /**
  * For now, this will start from the standard board setup
@@ -22,46 +23,118 @@ void setup_board(struct board *board, GList *moves) {
   if(moves) {
     GList *list;
     char *move;
-    u64 src, dst, new_bitboard;
     for (list = moves->next; list != NULL; list = list->next){
       move = list->data;
-      if(strlen(move) != 4) {
-        printf(BAD_CMD_STR);
+      make_move_from_uci_str(board, move);
+    }
+  }
+}
+
+void make_move_from_uci_str(struct board *board, char *move) {
+  if(strlen(move) != 4) {
+    print_invalid_move(move);
+    return;
+  }
+  u64 src, dst;
+  src = coord_to_u64(move[0], move[1]);
+  dst = coord_to_u64(move[2], move[3]);
+  if(!src || !dst) {
+    print_invalid_move(move);
+  } else {
+    make_move(board, src, dst);
+  }
+}
+
+void make_move(struct board *board, u64 src, u64 dst) {
+  char src_str[3], dst_str[3];
+  u64_to_coord(src, src_str, sizeof(src_str));
+  u64_to_coord(dst, dst_str, sizeof(dst_str));
+  if(src == dst) {
+    print_invalid_move_split(src_str, dst_str);
+    return;
+  }
+  u64 new_bitboard;
+  piece_loop(ix) {
+    if(board->bitboards[ix] & src) {
+      if(ix == NONE) {
+        print_invalid_move_split(src_str, dst_str);
         return;
       }
-      src = coord_to_u64(move[0], move[1]);
-      dst = coord_to_u64(move[2], move[3]);
-      if(!src || !dst) {
-        printf("invalid move: %s\n", move);
-        return;
-      }
-      piece_loop(ix) {
-        if(board->bitboards[ix] & src) {
-          if(ix == NONE) {
-            printf("invalid move: %s\n", move);
-            return;
-          }
-          // remove dst piece if captured
-          piece_loop(jx) {
-            if(board->bitboards[jx] & dst) {
-              // WTF? piece_strings[jx];
-              new_bitboard = (board->bitboards[jx] ^ dst);
-              update_bitboard(jx, board, new_bitboard);
-              break;
-            }
-          }
-
-          // always move piece from dst to src
-          new_bitboard = (board->bitboards[ix] ^ src) | dst;
-          update_bitboard(ix, board, new_bitboard);
-
-          // always add NONE to src of move
-          new_bitboard = (board->bitboards[NONE]) | src;
-          update_bitboard(NONE, board, new_bitboard);
+      // remove dst piece if captured
+      piece_loop(jx) {
+        if(board->bitboards[jx] & dst) {
+          new_bitboard = (board->bitboards[jx] ^ dst);
+          update_bitboard(jx, board, new_bitboard);
           break;
         }
       }
+
+      // always move piece from src to dst
+      new_bitboard = (board->bitboards[ix] ^ src) | dst;
+      update_bitboard(ix, board, new_bitboard);
+
+      // always add NONE to src of move
+      new_bitboard = (board->bitboards[NONE]) | src;
+      update_bitboard(NONE, board, new_bitboard);
+
+      check_castle(ix, board, src, dst);
+      break;
     }
+  }
+}
+
+void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
+  u64 new_bitboard;
+  if(piece == WK) {
+    if(src & START_WK) {
+      if(dst & WK_CASTLE_QUEEN) {
+        if(board->WK_castle_queen) {
+          if(board->bitboards[WR] & WR_QUEEN) {
+            new_bitboard = (board->bitboards[WR] ^ WR_QUEEN) | WR_CASTLE_QUEEN;
+            update_bitboard(WR, board, new_bitboard);
+            new_bitboard = (board->bitboards[NONE] ^ WR_CASTLE_QUEEN) | BR_QUEEN;
+            update_bitboard(NONE, board, new_bitboard);
+          }
+        }
+      } else if(dst & WK_CASTLE_KING) {
+        if(board->WK_castle_king) {
+          if(board->bitboards[WR] & WR_KING) {
+            new_bitboard = (board->bitboards[WR] ^ WR_KING) | WR_CASTLE_KING;
+            update_bitboard(WR, board, new_bitboard);
+            new_bitboard = (board->bitboards[NONE] ^ WR_CASTLE_KING) | WR_KING;
+            update_bitboard(NONE, board, new_bitboard);
+          }
+        }
+      }
+    }
+    // after king has moved set castling to false
+    board->WK_castle_queen = false;
+    board->WK_castle_king = false;
+  } else if(piece == BK) {
+    if(src & START_BK) {
+      if(dst & BK_CASTLE_QUEEN) {
+        if(board->BK_castle_queen) {
+          if(board->bitboards[BR] & BR_QUEEN) {
+            new_bitboard = (board->bitboards[BR] ^ BR_QUEEN) | BR_CASTLE_QUEEN;
+            update_bitboard(BR, board, new_bitboard);
+            new_bitboard = (board->bitboards[NONE] ^ BR_QUEEN) | BR_QUEEN;
+            update_bitboard(NONE, board, new_bitboard);
+          }
+        }
+      } else if(dst & BK_CASTLE_KING) {
+        if(board->BK_castle_king) {
+          if(board->bitboards[BR] & BR_KING) {
+            new_bitboard = (board->bitboards[BR] ^ BR_KING) | BR_CASTLE_KING;
+            update_bitboard(BR, board, new_bitboard);
+            new_bitboard = (board->bitboards[NONE] ^ BR_CASTLE_KING) | BR_KING;
+            update_bitboard(NONE, board, new_bitboard);
+          }
+        }
+      }
+    }
+    // after king has moved set castling to false
+    board->BK_castle_queen = false;
+    board->BK_castle_king = false;
   }
 }
 
@@ -94,7 +167,11 @@ void print_single_bitboard(u64 bitboard, enum piece type) {
       printf("  %d | ", (ix + 1) / 8);
     }
     if(has_piece_at(bitboard, ix)) {
-      printf("%s | ", piece_strings[type]);
+      if(type == NONE) {
+        printf("xx | ");
+      } else {
+        printf("%s | ", piece_strings[type]);
+      }
     } else {
       printf("   | ");
     }
@@ -121,6 +198,10 @@ void init_board(struct board *board) {
     board->bitboards[BR] = START_BR;
     board->bitboards[BQ] = START_BQ;
     board->bitboards[BK] = START_BK;
+    board->WK_castle_queen = true;
+    board->WK_castle_king = true;
+    board->BK_castle_queen = true;
+    board->BK_castle_king = true;
   } else {
     printf("board is NULL!\n");
   }

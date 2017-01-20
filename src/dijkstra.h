@@ -36,11 +36,6 @@ enum piece {
 
 extern const char *piece_strings[PIECE_TYPES];
 
-struct board {
-  u64 bitboards[PIECE_TYPES];
-  enum colors color;
-};
-
 #define streq(a,b) (strcmp(a,b) == 0)
 #define print_pretty_string(idx) (printf("%s", piece_strings[idx]))
 #define print_pretty_string_newline(idx) (printf("%s\n", piece_strings[idx]))
@@ -48,7 +43,16 @@ struct board {
 #define board_loop(ix) for(int ix = BOARDSIZE - 1; ix >= 0; ix--)
 #define boardlen_loop(ix) for(int ix = 0; ix < BOARDLEN; ix++)
 #define diag_num_loop(ix) for(int ix = 0; ix < NUM_DIAG; ix++)
+#define print_invalid_move(move) printf("invalid move: %s\n", move)
+#define print_invalid_move_split(src, dst) printf("invalid move: %s%s\n", src, dst)
 
 typedef enum { false, true } bool;
+
+struct board {
+  u64 bitboards[PIECE_TYPES];
+  enum colors color;
+  bool WK_castle_queen, WK_castle_king;
+  bool BK_castle_queen, BK_castle_king;
+};
 
 #endif

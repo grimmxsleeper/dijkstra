@@ -71,7 +71,6 @@ int main(void) {
           } else if(streq(cmd->data, "printbb")) {
             if(board) {
               piece_loop(ix) {
-                printf("%s\n", piece_strings[ix]);
                 print_single_bitboard(board->bitboards[ix], ix);
               }
             }
@@ -86,6 +85,13 @@ int main(void) {
               free(board);
             }
             break;
+          } else if(streq(cmd->data, "testmove")) {
+            if(cmd->next) {
+              if(board) {
+                make_move_from_uci_str(board, cmd->next->data);
+                print_board(board);
+              }
+            }
           } else if(streq(cmd->data, "test")) {
             u64 test_bb;
             u64 rank_bb = 0, file_bb = 0, dr_bb = 0, dl_bb = 0;
