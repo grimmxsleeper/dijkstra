@@ -4,7 +4,7 @@ INCLUDE = $(shell pkg-config --cflags glib-2.0)
 
 all: clean dijkstra
 dijkstra:
-	$(CC) dijkstra.c board.c func.c $(INCLUDE) $(LIBS) -o dijkstra
+	$(CC) dijkstra.c board.c func.c movegen.c $(INCLUDE) $(LIBS) -o dijkstra
 
 clean:
 	rm -f dijkstra

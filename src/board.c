@@ -63,8 +63,8 @@ void make_move(struct board *board, u64 src, u64 dst) {
       // remove dst piece if captured
       piece_loop(jx) {
         if(board->bitboards[jx] & dst) {
-          // cannot capture own color
-          if(color(ix) == color(jx)) {
+          // remove dst piece
+          if(!is_valid_move(board, ix, jx, src, dst)) {
             print_invalid_move_split(src_str, dst_str);
             return;
           }
@@ -83,9 +83,21 @@ void make_move(struct board *board, u64 src, u64 dst) {
       update_bitboard(NONE, board, new_bitboard);
 
       check_castle(ix, board, src, dst);
+      board->color = !board->color;
       break;
     }
   }
+}
+
+bool is_valid_move(struct board *board, enum piece src_piece,
+                   enum piece dst_piece, u64 src, u64 dst) {
+  if(src == dst) {
+    return false;
+  }
+  if(color(src_piece) == color(dst_piece)) {
+    return false;
+  }
+  return true;
 }
 
 void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
@@ -146,7 +158,7 @@ void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
 void print_board(struct board *board) {
   if(board) {
     printf(board_file_row);
-    board_loop(ix){
+    board_loop(ix) {
       if((ix + 1) % 8 == 0) {
         printf(vert_line);
         printf("  %d | ", (ix + 1) / 8);
@@ -185,7 +197,18 @@ void print_single_bitboard(u64 bitboard, enum piece type) {
 }
 
 u64 has_piece_at(u64 bitboard, int pos) {
-  return bitboard & (1ULL << pos);
+  return bitboard & pos_to_u64(pos);
+}
+
+enum piece piece_type_at_u64(struct board *board, u64 loc) {
+  if(board) {
+    piece_loop(ix) {
+      if(board->bitboards[ix] & loc) {
+        return ix;
+      }
+    }
+  }
+  return -1;
 }
 
 void init_board(struct board *board) {
@@ -207,6 +230,7 @@ void init_board(struct board *board) {
     board->WK_castle_king = true;
     board->BK_castle_queen = true;
     board->BK_castle_king = true;
+    board->color = WHITE;
   } else {
     printf("board is NULL!\n");
   }
@@ -217,5 +241,21 @@ void update_bitboard(int idx, struct board *board, u64 new_bitboard) {
     board->bitboards[idx] = new_bitboard;
   } else {
     printf("board is NULL!\n");
+  }
+}
+
+void print_moves_u64(struct board *board) {
+  if(board) {
+    GList *list;
+    u64 *bb_move;
+    char src_str[3], dst_str[3];
+    printf("POSSIBLE MOVES: ");
+    for(list = board->possible_moves; list != NULL; list = list->next){
+      bb_move = (u64*)list->data;
+      u64_to_coord(bb_move[0], src_str, sizeof(src_str));
+      u64_to_coord(bb_move[1], dst_str, sizeof(dst_str));
+      printf("%s%s ", src_str, dst_str);
+    }
+    printf("\n");
   }
 }

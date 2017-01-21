@@ -1,6 +1,7 @@
 #ifndef DIJK_H
 #define DIJK_H
 
+#include <glib.h>
 typedef unsigned long long u64;
 
 #define NAME "Dijkstra 0.1"
@@ -46,6 +47,7 @@ extern enum piece black_pieces[PIECE_PER_COLOR];
 #define board_loop(ix) for(int ix = BOARDSIZE - 1; ix >= 0; ix--)
 #define boardlen_loop(ix) for(int ix = 0; ix < BOARDLEN; ix++)
 #define diag_num_loop(ix) for(int ix = 0; ix < NUM_DIAG; ix++)
+#define piece_per_color_loop(ix) for(int ix = 0; ix < PIECE_PER_COLOR; ix++)
 #define print_invalid_move(move) printf("invalid move: %s\n", move)
 #define print_invalid_move_split(src, dst) printf("invalid move: %s%s\n", src, dst)
 
@@ -56,6 +58,7 @@ struct board {
   enum color color;
   bool WK_castle_queen, WK_castle_king;
   bool BK_castle_queen, BK_castle_king;
+  GList *possible_moves;
 };
 
 #endif

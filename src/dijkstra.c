@@ -7,6 +7,7 @@
 #include "board.h"
 #include "bitboards.h"
 #include "masks.h"
+#include "movegen.h"
 
 const char *piece_strings[PIECE_TYPES] = {
   "  ", "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ", "BK"
@@ -69,6 +70,7 @@ int main(void) {
             board = calloc(1, sizeof(struct board));
             if(cmd->next && streq(cmd->next->data, "startpos")) {
               setup_board(board, cmd->next->next);
+              generate_moves(board);
               print_board(board);
             } else {
               printf(BAD_CMD_STR);
@@ -87,6 +89,9 @@ int main(void) {
             ;
           } else if(streq(cmd->data, "quit")) {
             if(board) {
+              if(board->possible_moves) {
+                g_list_free_full(board->possible_moves, g_free);
+              }
               free(board);
             }
             break;
