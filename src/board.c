@@ -63,6 +63,11 @@ void make_move(struct board *board, u64 src, u64 dst) {
       // remove dst piece if captured
       piece_loop(jx) {
         if(board->bitboards[jx] & dst) {
+          // cannot capture own color
+          if(color(ix) == color(jx)) {
+            print_invalid_move_split(src_str, dst_str);
+            return;
+          }
           new_bitboard = (board->bitboards[jx] ^ dst);
           update_bitboard(jx, board, new_bitboard);
           break;

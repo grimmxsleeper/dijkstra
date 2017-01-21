@@ -11,6 +11,12 @@
 const char *piece_strings[PIECE_TYPES] = {
   "  ", "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ", "BK"
 };
+enum piece white_pieces[PIECE_PER_COLOR] = {
+  WP, WN, WB, WR, WQ, WK
+};
+enum piece black_pieces[PIECE_PER_COLOR] = {
+  BP, BN, BB, BR, BQ, BK
+};
 const u64 ranks[BOARDLEN] = {
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
 };
@@ -31,7 +37,6 @@ int main(void) {
   GList *cmd = NULL;
   char *token;
   int cmd_len = 0;
-  //enum colors color;
   struct board *board = NULL;
   while(1) {
     // take input and output from uci standard

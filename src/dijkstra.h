@@ -12,8 +12,9 @@ typedef unsigned long long u64;
 #define BOARDLEN 8
 #define PIECE_TYPES 13
 #define NUM_DIAG 2 * BOARDLEN - 1
+#define PIECE_PER_COLOR (PIECE_TYPES - 1) / 2
 
-enum colors {
+enum color {
   WHITE = 0,
   BLACK = 1
 };
@@ -35,6 +36,8 @@ enum piece {
 };
 
 extern const char *piece_strings[PIECE_TYPES];
+extern enum piece white_pieces[PIECE_PER_COLOR];
+extern enum piece black_pieces[PIECE_PER_COLOR];
 
 #define streq(a,b) (strcmp(a,b) == 0)
 #define print_pretty_string(idx) (printf("%s", piece_strings[idx]))
@@ -50,7 +53,7 @@ typedef enum { false, true } bool;
 
 struct board {
   u64 bitboards[PIECE_TYPES];
-  enum colors color;
+  enum color color;
   bool WK_castle_queen, WK_castle_king;
   bool BK_castle_queen, BK_castle_king;
 };

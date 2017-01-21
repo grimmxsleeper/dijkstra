@@ -32,3 +32,15 @@ void u64_to_coord(u64 pos, char *str, int size) {
     }
   snprintf(str, size, "%c%c", 'a' + file_int, '1' + rank_int);
 }
+
+enum color color(enum piece piece) {
+  if(!piece) {
+    return -1;
+  }
+  for(int ix = 0; ix < PIECE_PER_COLOR; ix++) {
+    if(piece == white_pieces[ix]) {
+      return WHITE;
+    }
+  }
+  return BLACK;
+}
