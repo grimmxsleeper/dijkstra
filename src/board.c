@@ -7,6 +7,54 @@
 #include "bitboards.h"
 #include "masks.h"
 
+// Global board
+static struct board _board;
+
+/**
+ * Initialize the baord
+ */
+void board_init()
+{
+  memset(&_board, 0, sizeof(struct board));
+  init_board(&_board);
+}
+
+/**
+ * Clear the board back to the starting position
+ */
+void board_clear()
+{
+  board_init();
+}
+
+/**
+ * Print the current board
+ *
+ * This will show where all the pieces are.
+ */
+void board_print()
+{
+  print_board(&_board);
+}
+
+/**
+ * Print all the individual locations of type piece types
+ */
+void board_print_bitboard()
+{
+  piece_loop(ix) {
+    print_single_bitboard(_board.bitboards[ix], ix);
+  }
+}
+
+/**
+ * Make a move on the board based on the move type
+ */
+void board_make_move(const char *move)
+{
+  make_move_from_uci_str(&_board, (char *)move);
+}
+
 /**
  * For now, this will start from the standard board setup
  *

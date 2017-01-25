@@ -1,5 +1,6 @@
 #ifndef DIJK_H
 #define DIJK_H
+#include <glib.h>
 
 typedef unsigned long long u64;
 
@@ -12,7 +13,6 @@ typedef unsigned long long u64;
 #define BOARDLEN 8
 #define PIECE_TYPES 13
 #define NUM_DIAG 2 * BOARDLEN - 1
-
 enum colors {
   WHITE = 0,
   BLACK = 1
@@ -53,6 +53,14 @@ struct board {
   enum colors color;
   bool WK_castle_queen, WK_castle_king;
   bool BK_castle_queen, BK_castle_king;
+};
+
+/**
+ * Commands available from the command line
+ */
+struct board_command {
+  const char *cmd;
+  void (*func) (gchar **);
 };
 
 #endif
