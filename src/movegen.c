@@ -25,7 +25,7 @@ void generate_moves() {
   print_moves_u64(&board);
 }
 
-void _gen_moves_pawn_white() {
+static void _gen_moves_pawn_white() {
   u64 bitboard, src, dst;
   u64 *bb_move;
   enum piece type = WP;
@@ -68,7 +68,7 @@ void _gen_moves_pawn_white() {
   }
 }
 
-void _gen_moves_pawn_black() {
+static void _gen_moves_pawn_black() {
   u64 bitboard, src, dst;
   u64 *bb_move;
   enum piece type = BP;
@@ -117,7 +117,7 @@ void gen_moves_piece(enum piece type) {
       _gen_moves_pawn_white();
       break;
     case BP:
-      _gen_moves_pawn_white();
+      _gen_moves_pawn_black();
       break;
     case WN:
     case BN:
