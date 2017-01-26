@@ -10,8 +10,7 @@
 /**
  * Initialize the baord
  */
-void board_init()
-{
+void board_init() {
   memset(&board, 0, sizeof(struct board));
   initboard(&board);
 }
@@ -19,8 +18,7 @@ void board_init()
 /**
  * Clear the board back to the starting position
  */
-void board_clear()
-{
+void board_clear() {
   board_init();
 }
 
@@ -29,16 +27,14 @@ void board_clear()
  *
  * This will show where all the pieces are.
  */
-void board_print()
-{
+void board_print() {
   printboard(&board);
 }
 
 /**
  * Print all the individual locations of type piece types
  */
-void board_print_bitboard()
-{
+void board_print_bitboard() {
   piece_loop(ix) {
     print_single_bitboard(board.bitboards[ix], ix);
   }
@@ -47,9 +43,19 @@ void board_print_bitboard()
 /**
  * Make a move on the board based on the move type
  */
-void board_make_move(const char *move)
-{
+void board_make_move(const char *move) {
   make_move_from_uci_str(&board, (char *)move);
+}
+
+/**
+ * Print out which player's turn it is
+ */
+void board_print_turn() {
+  if(!board.color) {
+    printf("White to move!\n");
+  } else {
+    printf("Black to move!\n");
+  }
 }
 
 /**
@@ -75,6 +81,9 @@ void setupboard(struct board *board, GList *moves) {
   }
 }
 
+/**
+ * Make a move from a UCI string such as: e2e4
+ */
 void make_move_from_uci_str(struct board *board, char *move) {
   if(strlen(move) != 4) {
     print_invalid_move(move);
@@ -90,6 +99,10 @@ void make_move_from_uci_str(struct board *board, char *move) {
   }
 }
 
+
+/**
+ * Make a move and update the current board stucture
+ */
 void make_move(struct board *board, u64 src, u64 dst) {
   char src_str[3], dst_str[3];
   u64_to_coord(src, src_str, sizeof(src_str));
@@ -109,7 +122,7 @@ void make_move(struct board *board, u64 src, u64 dst) {
       piece_loop(jx) {
         if(board->bitboards[jx] & dst) {
           // remove dst piece
-          if(!is_valid_move(board, ix, jx, src, dst)) {
+          if(!is_valid_move(board, ix, jx, src, dst, 0)) {
             print_invalid_move_split(src_str, dst_str);
             return;
           }
@@ -134,17 +147,59 @@ void make_move(struct board *board, u64 src, u64 dst) {
   }
 }
 
+/**
+ * Check if there is a piece between two positions on the given path
+ */
+bool piece_in_between(struct board *board, u64 src, u64 dst, u64 path) {
+  int high_order, low_order;
+  u64 in_between_pos;
+  high_order = high_bit(src | dst);
+  low_order = low_bit(src | dst);
+  in_between_pos = (src | dst) ^ path;
+  in_between_pos = (in_between_pos << high_order) >> high_order;
+  in_between_pos = (in_between_pos >> low_order) << low_order;
+  if(src & START_WP) {
+    printf("IBP\n");
+    print_single_bitboard(in_between_pos, WB);
+  }
+  board_loop(ix) {
+    if(has_piece_at(in_between_pos, ix)) {
+      if(!has_piece_at(board->bitboards[NONE], ix)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Check if a given move is valid
+ */
 bool is_valid_move(struct board *board, enum piece src_piece,
-                   enum piece dst_piece, u64 src, u64 dst) {
+                   enum piece dst_piece, u64 src, u64 dst, u64 path) {
+
   if(src == dst) {
     return false;
   }
+
+  // cannot capture own piece
   if(color(src_piece) == color(dst_piece)) {
     return false;
   }
+
+  // cannot pass through piece on diagonal, rank, or file
+  if(path) {
+    if(piece_in_between(board, src, dst, path)){
+      return false;
+    }
+  }
+
   return true;
 }
 
+/**
+ * Check if a castle is being performed, and move rook accordingly
+ */
 void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
   u64 new_bitboard;
   if(piece == WK) {
@@ -200,6 +255,9 @@ void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
   }
 }
 
+/**
+ * Print current board
+ */
 void printboard(struct board *board) {
   if(board) {
     printf(board_file_row);
@@ -221,6 +279,9 @@ void printboard(struct board *board) {
   }
 }
 
+/**
+ * Print a single piece type's bitboard
+ */
 void print_single_bitboard(u64 bitboard, enum piece type) {
   printf(board_file_row);
   board_loop(ix) {
@@ -241,10 +302,19 @@ void print_single_bitboard(u64 bitboard, enum piece type) {
   printf("%s\n", vert_line);
 }
 
+/**
+ * Check if a bitboard has a a piece at given position
+ */
 u64 has_piece_at(u64 bitboard, int pos) {
   return bitboard & pos_to_u64(pos);
 }
 
+/**
+ * Return which piece exists at a given u64 location
+ *
+ * @param board Pointer to board structure
+ * @param loc Bitboard with only a single bit set (representing position)
+ */
 enum piece piece_type_at_u64(struct board *board, u64 loc) {
   if(board) {
     piece_loop(ix) {
@@ -256,6 +326,9 @@ enum piece piece_type_at_u64(struct board *board, u64 loc) {
   return -1;
 }
 
+/**
+ * Initialize the board
+ */
 void initboard(struct board *board) {
   if(board) {
     board->bitboards[NONE] = START_NONE;
@@ -281,6 +354,9 @@ void initboard(struct board *board) {
   }
 }
 
+/**
+ * Update a bitboard in the board structure with a new bitboard
+ */
 void update_bitboard(int idx, struct board *board, u64 new_bitboard) {
   if(board) {
     board->bitboards[idx] = new_bitboard;
@@ -289,7 +365,10 @@ void update_bitboard(int idx, struct board *board, u64 new_bitboard) {
   }
 }
 
-void print_moves_u64(struct board *board) {
+/**
+ * Print all possible moves
+ */
+void print_moves(struct board *board) {
   if(board) {
     GList *list;
     u64 *bb_move;

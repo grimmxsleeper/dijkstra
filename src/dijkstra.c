@@ -34,6 +34,15 @@ const u64 diags_l[NUM_DIAG] = {
   DR_1, DR_2, DR_3, DR_4, DR_5, DR_6, DR_7, DR_8,
   DR_9, DR_10, DR_11, DR_12, DR_13, DR_14, DR_15
 };
+const u64 knight_moves[BOARDSIZE] = {
+  NM_0, NM_1, NM_2, NM_3, NM_4, NM_5, NM_6, NM_7, NM_8, NM_9,
+  NM_10, NM_11, NM_12, NM_13, NM_14, NM_15, NM_16, NM_17, NM_18, NM_19,
+  NM_20, NM_21, NM_22, NM_23, NM_24, NM_25, NM_26, NM_27, NM_28, NM_29,
+  NM_30, NM_31, NM_32, NM_33, NM_34, NM_35, NM_36, NM_37, NM_38, NM_39,
+  NM_40, NM_41, NM_42, NM_43, NM_44, NM_45, NM_46, NM_47, NM_48, NM_49,
+  NM_50, NM_51, NM_52, NM_53, NM_54, NM_55, NM_56, NM_57, NM_58, NM_59,
+  NM_60, NM_61, NM_62, NM_63
+};
 
 /**
  * Check command line arguments
@@ -105,12 +114,12 @@ static void _cmd_position(gchar **args)
       return;
     }
   }
-  printf("Setting up a board\n");
   board_clear();
   // Based an arguments perform initial set of moves
   for(int ix = 3; ix < g_strv_length(args); ix++) {
     board_make_move(args[ix]);
   };
+  board_print_turn();
   generate_moves();
   board_print();
 }

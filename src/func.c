@@ -44,3 +44,11 @@ enum color color(enum piece piece) {
   }
   return BLACK;
 }
+
+int high_bit(u64 bitboard) {
+  return __builtin_clzll(bitboard);
+}
+
+int low_bit(u64 bitboard) {
+  return  __builtin_ctzll (bitboard);
+}
