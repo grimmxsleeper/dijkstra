@@ -1,5 +1,6 @@
 #ifndef DIJK_H
 #define DIJK_H
+#include <glib.h>
 
 #include <glib.h>
 typedef unsigned long long u64;
@@ -59,6 +60,14 @@ struct board {
   bool WK_castle_queen, WK_castle_king;
   bool BK_castle_queen, BK_castle_king;
   GList *possible_moves;
+};
+
+/**
+ * Commands available from the command line
+ */
+struct board_command {
+  const char *cmd;
+  void (*func) (gchar **);
 };
 
 #endif

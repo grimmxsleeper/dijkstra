@@ -8,18 +8,63 @@
 #include "masks.h"
 
 /**
+ * Initialize the baord
+ */
+void board_init()
+{
+  memset(&board, 0, sizeof(struct board));
+  initboard(&board);
+}
+
+/**
+ * Clear the board back to the starting position
+ */
+void board_clear()
+{
+  board_init();
+}
+
+/**
+ * Print the current board
+ *
+ * This will show where all the pieces are.
+ */
+void board_print()
+{
+  printboard(&board);
+}
+
+/**
+ * Print all the individual locations of type piece types
+ */
+void board_print_bitboard()
+{
+  piece_loop(ix) {
+    print_single_bitboard(board.bitboards[ix], ix);
+  }
+}
+
+/**
+ * Make a move on the board based on the move type
+ */
+void board_make_move(const char *move)
+{
+  make_move_from_uci_str(&board, (char *)move);
+}
+
+/**
  * For now, this will start from the standard board setup
  *
  * TODO: Add FEN param
  */
-void setup_board(struct board *board, GList *moves) {
+void setupboard(struct board *board, GList *moves) {
   if(moves) {
     if(!streq(moves->data, "moves")) {
       printf(BAD_CMD_STR);
       return;
     }
   }
-  init_board(board);
+  initboard(board);
   if(moves) {
     GList *list;
     char *move;
@@ -155,7 +200,7 @@ void check_castle(enum piece piece, struct board *board, u64 src, u64 dst) {
   }
 }
 
-void print_board(struct board *board) {
+void printboard(struct board *board) {
   if(board) {
     printf(board_file_row);
     board_loop(ix) {
@@ -211,7 +256,7 @@ enum piece piece_type_at_u64(struct board *board, u64 loc) {
   return -1;
 }
 
-void init_board(struct board *board) {
+void initboard(struct board *board) {
   if(board) {
     board->bitboards[NONE] = START_NONE;
     board->bitboards[WP] = START_WP;
