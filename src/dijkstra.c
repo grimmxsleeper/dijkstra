@@ -43,6 +43,15 @@ const u64 knight_moves[BOARDSIZE] = {
   NM_50, NM_51, NM_52, NM_53, NM_54, NM_55, NM_56, NM_57, NM_58, NM_59,
   NM_60, NM_61, NM_62, NM_63
 };
+const u64 king_moves[BOARDSIZE] = {
+  KM_0, KM_1, KM_2, KM_3, KM_4, KM_5, KM_6, KM_7, KM_8, KM_9,
+  KM_10, KM_11, KM_12, KM_13, KM_14, KM_15, KM_16, KM_17, KM_18, KM_19,
+  KM_20, KM_21, KM_22, KM_23, KM_24, KM_25, KM_26, KM_27, KM_28, KM_29,
+  KM_30, KM_31, KM_32, KM_33, KM_34, KM_35, KM_36, KM_37, KM_38, KM_39,
+  KM_40, KM_41, KM_42, KM_43, KM_44, KM_45, KM_46, KM_47, KM_48, KM_49,
+  KM_50, KM_51, KM_52, KM_53, KM_54, KM_55, KM_56, KM_57, KM_58, KM_59,
+  KM_60, KM_61, KM_62, KM_63
+};
 
 /**
  * Check command line arguments
@@ -117,11 +126,13 @@ static void _cmd_position(gchar **args)
   board_clear();
   // Based an arguments perform initial set of moves
   for(int ix = 3; ix < g_strv_length(args); ix++) {
-    board_make_move(args[ix]);
+    if(!board_make_move(args[ix])) {
+      break;
+    }
   };
   board_print_turn();
-  generate_moves();
   board_print();
+  board_print_moves();
 }
 
 /**
@@ -166,6 +177,7 @@ static void _cmd_testmove(gchar **args)
   }
   board_make_move(args[1]);
   board_print();
+  board_print_moves();
 }
 
 /**
@@ -248,7 +260,6 @@ int main(void) {
 
   char line[2048];
   bool valid_action;
-  board_init();
 
   printf("Welcome to Dijkstra!\n");
   printf("Type 'help' for information\n");

@@ -1,11 +1,13 @@
 #include <glib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "dijkstra.h"
 #include "board.h"
 #include "func.h"
 #include "bitboards.h"
 #include "masks.h"
+#include "movegen.h"
 
 /**
  * Initialize the baord
@@ -43,8 +45,8 @@ void board_print_bitboard() {
 /**
  * Make a move on the board based on the move type
  */
-void board_make_move(const char *move) {
-  make_move_from_uci_str(&board, (char *)move);
+bool board_make_move(const char *move) {
+  return make_move_from_uci_str(&board, (char *)move);
 }
 
 /**
@@ -59,44 +61,47 @@ void board_print_turn() {
 }
 
 /**
- * For now, this will start from the standard board setup
- *
- * TODO: Add FEN param
+ * Print list of possible moves
  */
-void setupboard(struct board *board, GList *moves) {
-  if(moves) {
-    if(!streq(moves->data, "moves")) {
-      printf(BAD_CMD_STR);
-      return;
-    }
-  }
-  initboard(board);
-  if(moves) {
-    GList *list;
-    char *move;
-    for (list = moves->next; list != NULL; list = list->next){
-      move = list->data;
-      make_move_from_uci_str(board, move);
-    }
-  }
+void board_print_moves() {
+  print_moves(&board);
 }
 
 /**
  * Make a move from a UCI string such as: e2e4
  */
-void make_move_from_uci_str(struct board *board, char *move) {
+bool make_move_from_uci_str(struct board *board, char *move) {
   if(strlen(move) != 4) {
     print_invalid_move(move);
-    return;
+    return false;
   }
   u64 src, dst;
+  GList *list;
+  u64 *bb_move;
+  bool found_move = false;
   src = coord_to_u64(move[0], move[1]);
   dst = coord_to_u64(move[2], move[3]);
   if(!src || !dst) {
     print_invalid_move(move);
+    return false;
   } else {
-    make_move(board, src, dst);
+    for(list = board->possible_moves; list != NULL; list = list->next) {
+      bb_move = (u64*)list->data;
+      if(bb_move[0] == src && bb_move[1] == dst) {
+        found_move = true;
+        break;
+      }
+    }
+    if(found_move) {
+      make_move(board, src, dst);
+    } else {
+      print_invalid_move(move);
+      printf("this move was not found in possible moves list!\n");
+      print_moves(board);
+      return false;
+    }
   }
+  return true;
 }
 
 
@@ -142,6 +147,7 @@ void make_move(struct board *board, u64 src, u64 dst) {
 
       check_castle(ix, board, src, dst);
       board->color = !board->color;
+      generate_moves();
       break;
     }
   }
@@ -349,6 +355,8 @@ void initboard(struct board *board) {
     board->BK_castle_queen = true;
     board->BK_castle_king = true;
     board->color = WHITE;
+    board->possible_moves = NULL;
+    generate_moves();
   } else {
     printf("board is NULL!\n");
   }

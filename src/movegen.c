@@ -25,7 +25,6 @@ void generate_moves() {
       gen_moves_piece(white_pieces[ix]);
     }
   }
-  print_moves(&board);
 }
 
 /**
@@ -284,12 +283,6 @@ static void _gen_moves_queen(enum piece type) {
       src = pos_to_u64(ix);
       // move along diagonals
       _moves_diagonal(src, bitboard, type);
-    }
-  }
-  board_loop(ix) {
-    if(has_piece_at(bitboard, ix)) {
-      src = pos_to_u64(ix);
-      // move along ranks + files
       _moves_rank_file(src, bitboard, type);
     }
   }
@@ -301,7 +294,51 @@ static void _gen_moves_queen(enum piece type) {
  * @param type The type of piece to generate moves for
  */
 static void _gen_moves_king(enum piece type) {
-  ;
+  u64 bitboard, src, dst;
+  bitboard = board.bitboards[type];
+  board_loop(ix) {
+    if(has_piece_at(bitboard, ix)) {
+      src = pos_to_u64(ix);
+
+      // move accordingly
+      board_loop(kx) {
+        if(king_moves[ix] & pos_to_u64(kx)) {
+          dst = pos_to_u64(kx);
+          _add_move_if_valid(src, dst, 0, type);
+        }
+      }
+
+      // check castles
+      if((type == WK) &&
+        (board.WK_castle_king) &&
+        (pos_to_u64(ix) & START_WK) &&
+        (board.bitboards[WR] & WR_KING)) {
+          dst = WK_CASTLE_KING;
+          _add_move_if_valid(src, dst, RANK_8, type);
+      } else if((type == WK) &&
+        (board.WK_castle_queen) &&
+        (pos_to_u64(ix) & START_WK) &&
+        (board.bitboards[WR] & WR_QUEEN)) {
+          dst = WK_CASTLE_QUEEN;
+          _add_move_if_valid(src, dst, RANK_8, type);
+      } else if((type == BK) &&
+        (board.BK_castle_king) &&
+        (pos_to_u64(ix) & START_BK) &&
+        (board.bitboards[BR] & BR_KING)) {
+          dst = BK_CASTLE_KING;
+          _add_move_if_valid(src, dst, RANK_1, type);
+      } else if((type == BK) &&
+        (board.BK_castle_queen) &&
+        (pos_to_u64(ix) & START_BK) &&
+        (board.bitboards[BR] & BR_QUEEN)) {
+          dst = BK_CASTLE_QUEEN;
+          _add_move_if_valid(src, dst, RANK_1, type);
+      }
+
+    // only ever 1 king
+    break;
+    }
+  }
 }
 
 /**
