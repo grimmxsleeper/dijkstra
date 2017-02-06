@@ -314,25 +314,25 @@ static void _gen_moves_king(enum piece type) {
         (pos_to_u64(ix) & START_WK) &&
         (board.bitboards[WR] & WR_KING)) {
           dst = WK_CASTLE_KING;
-          _add_move_if_valid(src, dst, RANK_8, type);
+          _add_move_if_valid(src, dst, RANK_1, type);
       } else if((type == WK) &&
         (board.WK_castle_queen) &&
         (pos_to_u64(ix) & START_WK) &&
         (board.bitboards[WR] & WR_QUEEN)) {
           dst = WK_CASTLE_QUEEN;
-          _add_move_if_valid(src, dst, RANK_8, type);
+          _add_move_if_valid(src, dst, RANK_1, type);
       } else if((type == BK) &&
         (board.BK_castle_king) &&
         (pos_to_u64(ix) & START_BK) &&
         (board.bitboards[BR] & BR_KING)) {
           dst = BK_CASTLE_KING;
-          _add_move_if_valid(src, dst, RANK_1, type);
+          _add_move_if_valid(src, dst, RANK_8, type);
       } else if((type == BK) &&
         (board.BK_castle_queen) &&
         (pos_to_u64(ix) & START_BK) &&
         (board.bitboards[BR] & BR_QUEEN)) {
           dst = BK_CASTLE_QUEEN;
-          _add_move_if_valid(src, dst, RANK_1, type);
+          _add_move_if_valid(src, dst, RANK_8, type);
       }
 
     // only ever 1 king

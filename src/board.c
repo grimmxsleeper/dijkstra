@@ -164,10 +164,6 @@ bool piece_in_between(struct board *board, u64 src, u64 dst, u64 path) {
   in_between_pos = (src | dst) ^ path;
   in_between_pos = (in_between_pos << high_order) >> high_order;
   in_between_pos = (in_between_pos >> low_order) << low_order;
-  if(src & START_WP) {
-    printf("IBP\n");
-    print_single_bitboard(in_between_pos, WB);
-  }
   board_loop(ix) {
     if(has_piece_at(in_between_pos, ix)) {
       if(!has_piece_at(board->bitboards[NONE], ix)) {
